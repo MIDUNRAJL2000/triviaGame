@@ -1,17 +1,8 @@
-import React from "react";
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import axios from "axios";
+import Results from "./Results";
 
 const baseURL = "https://opentdb.com/api.php?amount=10";
-
-// const shuffleArray = (array) => {
-//   const shuffledArray = [...array];
-//   for (let i = shuffledArray.length - 1; i > 0; i--) {
-//     const j = Math.floor(Math.random() * (i + 1));
-//     [shuffledArray[i], shuffledArray[j]] = [shuffledArray[j], shuffledArray[i]];
-//   }
-//   return shuffledArray;
-// };
 function Quiz() {
   const [quiz, setQuiz] = useState(null);
   const [correctAnswers, setCorrectAnswers] = useState(0);
@@ -20,94 +11,97 @@ function Quiz() {
   const [totalQuestions, setTotalQuestions] = useState(0);
   const [shuffledAnswers, setShuffledAnswers] = useState([]);
 
-  //   const [button, setButton] = useState(false);
+  // useEffect(() => {
+  //   axios
+  //     .get(baseURL)
 
+  //     .then((response) => {
+  //       setQuiz(response.data.results);
+  //       setTotalQuestions(response.data.results.length);
+  //     })
+
+  //     .catch((error) => {
+  //       console.error("Error fetching data:", error);
+  //     });
+  // }, []);
   useEffect(() => {
     axios
       .get(baseURL)
-
       .then((response) => {
         setQuiz(response.data.results);
         setTotalQuestions(response.data.results.length);
+        const currentQuestion = response.data.results[presentQuestionIndex];
+        const answers = [
+          ...currentQuestion.incorrect_answers,
+          currentQuestion.correct_answer,
+        ];
+        setShuffledAnswers(shuffle(answers));
       })
-
       .catch((error) => {
         console.error("Error fetching data:", error);
       });
-  }, []);
+  }, [presentQuestionIndex]);
 
-  useEffect(() => {
-    const mappedData = quiz.map((quizItem) => {
-      const options = [quizItem.correct_answer, ...quizItem.incorrect_answers];
-
-      const shuffledOptions = shuffleArray(options);
-
-      return {
-        question: quizItem.question,
-
-        correctAnswer: quizItem.correct_answer,
-
-        options: shuffledOptions,
-      };
-    });
-
-    setMappedQuiz(mappedData);
-
-    setCurrentQuestion(mappedData[count]);
-
-    console.log(currentQuestion);
-  }, [quiz]);
-
-  if (quiz.length === 0) return null;
+  function shuffle(array) {
+    for (let i = array.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [array[i], array[j]] = [array[j], array[i]];
+    }
+    return array;
+  }
 
   const handleClick = (answer) => {
-    setSelectAnswer(answer);
+    if (selectAnswer === null) {
+      setSelectAnswer(answer);
 
-    // if (answer === correctAnswer) {
-    //   setButton(true);
-    // }
+      if (answer === quiz[presentQuestionIndex].correct_answer) {
+        setCorrectAnswers(correctAnswers + 1);
+      }
+
+      // if (answer === correctAnswer) {
+      //   setButton(true);
+      // }
+    }
   };
 
   const handleNext = () => {
-    setSelectAnswer(false);
+    setSelectAnswer(null);
     setPresentQuestionIndex(presentQuestionIndex + 1);
   };
   if (!quiz) return null;
-
-  const currentQuestion = quiz[presentQuestionIndex];
-  if (!currentQuestion) {
+  if (presentQuestionIndex >= totalQuestions) {
     return (
-      <div>
-        <h2>Quiz completed</h2>
-      </div>
+      <Results
+        correctAnswers={correctAnswers}
+        totalQuestions={totalQuestions}
+      />
     );
   }
+
+  const currentQuestion = quiz[presentQuestionIndex];
   return (
     <div className="quiz">
       <h2>{currentQuestion.question}</h2>
       <div className="answers">
-        {currentQuestion.incorrect_answers.map((incorrectAnswer, i) => (
+        {shuffledAnswers.map((answer, i) => (
           <button
             key={i}
-            onClick={() => handleClick(incorrectAnswer)}
+            onClick={() => handleClick(answer)}
             style={{
-              backgroundColor: selectAnswer === incorrectAnswer ? "red" : "",
+              backgroundColor:
+                selectAnswer === answer
+                  ? answer === currentQuestion.correct_answer
+                    ? "lightgreen"
+                    : "red"
+                  : "",
             }}
+            disabled={selectAnswer !== null}
           >
-            {incorrectAnswer}
+            {answer}
           </button>
         ))}
-        <button
-          onClick={() => handleClick(currentQuestion.correct_answer)}
-          style={{
-            backgroundColor:
-              selectAnswer === currentQuestion.correct_answer ? "green" : "",
-          }}
-          className="btn-1"
-        >
-          {currentQuestion.correct_answer}
-        </button>
       </div>
+
       <button onClick={handleNext}>Next</button>
     </div>
   );
