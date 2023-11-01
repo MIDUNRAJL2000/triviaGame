@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
-import Results from "./Results";
+import Results from "../pages/Results";
 
 const baseURL = "https://opentdb.com/api.php?amount=10";
 

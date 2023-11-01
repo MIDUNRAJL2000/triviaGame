@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import Quiz from "./Quiz";
+import Quiz from "../components/Quiz";
 
 function HomePage() {
   const [quizStart, setQuizStart] = useState(false);

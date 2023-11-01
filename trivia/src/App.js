@@ -1,7 +1,7 @@
 import React from "react";
-import Quiz from "./Quiz";
-import HomePage from "./HomePage";
-import "./HomePage.css";
+import Quiz from "./components/Quiz";
+import HomePage from "./pages/HomePage";
+import "./pages/HomePage.css";
 
 function App() {
   return (
