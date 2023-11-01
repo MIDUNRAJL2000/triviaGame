@@ -12,7 +12,6 @@ const Results = ({ correctAnswers, totalQuestions }) => {
       <span>Quiz Result</span>
       <p>Correct Answers:{correctAnswers}</p>
       <p>Wrong Answers: {wrongAnswers}</p>
-
       <button onClick={refreshPage}>START AGAIN</button>
     </div>
   );

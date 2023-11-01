@@ -3,44 +3,51 @@ import axios from "axios";
 import Results from "./Results";
 
 const baseURL = "https://opentdb.com/api.php?amount=10";
+
 function Quiz() {
-  const [quiz, setQuiz] = useState(null);
+  const [quiz, setQuiz] = useState([]);
   const [correctAnswers, setCorrectAnswers] = useState(0);
   const [selectAnswer, setSelectAnswer] = useState(null);
   const [presentQuestionIndex, setPresentQuestionIndex] = useState(0);
   const [totalQuestions, setTotalQuestions] = useState(0);
   const [shuffledAnswers, setShuffledAnswers] = useState([]);
+  const [showResults, setShowResults] = useState(false);
 
-  // useEffect(() => {
-  //   axios
-  //     .get(baseURL)
-
-  //     .then((response) => {
-  //       setQuiz(response.data.results);
-  //       setTotalQuestions(response.data.results.length);
-  //     })
-
-  //     .catch((error) => {
-  //       console.error("Error fetching data:", error);
-  //     });
-  // }, []);
   useEffect(() => {
-    axios
-      .get(baseURL)
-      .then((response) => {
-        setQuiz(response.data.results);
-        setTotalQuestions(response.data.results.length);
-        const currentQuestion = response.data.results[presentQuestionIndex];
-        const answers = [
-          ...currentQuestion.incorrect_answers,
-          currentQuestion.correct_answer,
-        ];
-        setShuffledAnswers(shuffle(answers));
-      })
-      .catch((error) => {
-        console.error("Error fetching data:", error);
-      });
-  }, [presentQuestionIndex]);
+    if (quiz.length === 0) {
+      fetchData();
+      console.log("hi");
+    }
+  }, []);
+
+  const fetchData = async () => {
+    try {
+      const response = await axios.get(baseURL);
+      setQuiz(response.data.results);
+      setTotalQuestions(response.data.results.length);
+    } catch (error) {
+      console.error("Error fetching data:", error);
+    }
+  };
+
+  useEffect(() => {
+    if (presentQuestionIndex < totalQuestions) {
+      const currentQuestion = quiz[presentQuestionIndex];
+      const answers = [
+        ...currentQuestion.incorrect_answers,
+        currentQuestion.correct_answer,
+      ];
+      shuffleAndSetAnswers(answers);
+
+      // Reset answerColors when moving to the next question
+    }
+  }, [presentQuestionIndex, quiz, totalQuestions]);
+
+  const shuffleAndSetAnswers = (answers) => {
+    // Shuffle the answers
+    const shuffled = shuffle(answers);
+    setShuffledAnswers(shuffled);
+  };
 
   function shuffle(array) {
     for (let i = array.length - 1; i > 0; i--) {
@@ -57,19 +64,23 @@ function Quiz() {
       if (answer === quiz[presentQuestionIndex].correct_answer) {
         setCorrectAnswers(correctAnswers + 1);
       }
-
-      // if (answer === correctAnswer) {
-      //   setButton(true);
-      // }
     }
   };
 
   const handleNext = () => {
-    setSelectAnswer(null);
-    setPresentQuestionIndex(presentQuestionIndex + 1);
+    if (presentQuestionIndex === totalQuestions - 1) {
+      setShowResults(true);
+    } else {
+      setSelectAnswer(null);
+      setPresentQuestionIndex(presentQuestionIndex + 1);
+    }
   };
-  if (!quiz) return null;
-  if (presentQuestionIndex >= totalQuestions) {
+
+  if (quiz.length === 0) {
+    return <div>Loading questions...</div>;
+  }
+
+  if (showResults) {
     return (
       <Results
         correctAnswers={correctAnswers}
@@ -79,9 +90,11 @@ function Quiz() {
   }
 
   const currentQuestion = quiz[presentQuestionIndex];
+
   return (
     <div className="quiz">
-      <h2>{currentQuestion.question}</h2>
+      <h2>Question {presentQuestionIndex + 1}:</h2>
+      <p>{currentQuestion.question}</p>
       <div className="answers">
         {shuffledAnswers.map((answer, i) => (
           <button
@@ -101,9 +114,11 @@ function Quiz() {
           </button>
         ))}
       </div>
-
-      <button onClick={handleNext}>Next</button>
+      <button className="next-button" onClick={handleNext}>
+        {presentQuestionIndex === totalQuestions - 1 ? "See Results" : "Next"}
+      </button>
     </div>
   );
 }
+
 export default Quiz;
