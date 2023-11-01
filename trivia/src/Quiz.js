@@ -38,8 +38,6 @@ function Quiz() {
         currentQuestion.correct_answer,
       ];
       shuffleAndSetAnswers(answers);
-
-      // Reset answerColors when moving to the next question
     }
   }, [presentQuestionIndex, quiz, totalQuestions]);
 

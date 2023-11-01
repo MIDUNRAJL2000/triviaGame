@@ -96,7 +96,6 @@ button:hover {
   transition: background-color 0.3s, transform 0.2s;
 }
 
-/* Hover effect for the Next button */
 .next-button:hover {
   background-color: green;
   transform: scale(1.05);
